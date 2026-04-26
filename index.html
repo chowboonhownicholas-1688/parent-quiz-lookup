@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Submission Summary Lookup</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f6f7fb;
+      margin: 0;
+      padding: 24px;
+      color: #222;
+    }
+
+    .container {
+      max-width: 820px;
+      margin: auto;
+      background: white;
+      padding: 28px;
+      border-radius: 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 24px;
+    }
+
+    .note {
+      background: #eef4ff;
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-top: 14px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      margin-top: 6px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 12px;
+      background: #1a73e8;
+      color: white;
+      cursor: pointer;
+    }
+
+    .error {
+      margin-top: 18px;
+      background: #fff1f0;
+      color: #9f1d1d;
+      padding: 14px;
+      border-radius: 10px;
+    }
+
+    .student-card {
+      background: #f9fafc;
+      border-radius: 14px;
+      padding: 16px;
+      margin-top: 24px;
+      margin-bottom: 16px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .stat {
+      background: #f1f3f7;
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .stat .num {
+      font-size: 26px;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    .stat .label {
+      font-size: 13px;
+      color: #555;
+    }
+
+    .details-box {
+      margin-top: 20px;
+      background: #fafafa;
+      padding: 14px;
+      border-radius: 12px;
+      white-space: pre-line;
+      line-height: 1.5;
+    }
+
+    .email-box {
+      margin-top: 20px;
+      padding: 14px;
+      background: #f3f8f4;
+      border-radius: 12px;
+      line-height: 1.5;
+    }
+
+    .email-box a {
+      color: #0b6b37;
+      font-weight: bold;
+    }
+
+    @media (max-width: 700px) {
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      body {
+        padding: 12px;
+      }
+
+      .container {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Quiz Submission Summary Lookup</h1>
+
+    <div class="note">
+      Please enter your child’s class, register number, and part of their name.
+      For privacy, the system will only display a summary if the entered details verify exactly one student.
+    </div>
+
+    <label for="classCode">Class</label>
+    <select id="classCode">
+      <option value="">Select class</option>
+      <option value="26J01">26J01</option>
+      <option value="26J02">26J02</option>
+      <option value="26J03">26J03</option>
+      <option value="26J04">26J04</option>
+      <option value="26J05">26J05</option>
+      <option value="26J06">26J06</option>
+    </select>
+
+    <label for="indexNo">Register number</label>
+    <input id="indexNo" type="text" placeholder="e.g. 4">
+
+    <label for="nameQuery">Child’s name / part of name</label>
+    <input id="nameQuery" type="text" placeholder="e.g. Tan Wei">
+
+    <button onclick="lookup()">Check Submission Summary</button>
+
+    <div id="output"></div>
+  </div>
+
+  <script>
+    const API_URL = 'https://script.google.com/macros/s/AKfycbw6PKPlOS5B1-qoNc3ZgzfxLramEdTAUA9hpKn-GzPbI7pZsp9VeS0eaeOQ3E9BYdHKDg/exec';
+
+    function lookup() {
+      const output = document.getElementById('output');
+
+      const classCode = document.getElementById('classCode').value;
+      const indexNo = document.getElementById('indexNo').value;
+      const nameQuery = document.getElementById('nameQuery').value;
+
+      if (!classCode || !indexNo || !nameQuery) {
+        output.innerHTML = '<div class="error">Please enter class, register number, and part of your child’s name.</div>';
+        return;
+      }
+
+      output.innerHTML = '<p>Checking records...</p>';
+
+      const callbackName = 'parentLookupCallback_' + Date.now();
+
+      window[callbackName] = function(data) {
+        renderResult(data);
+        delete window[callbackName];
+        script.remove();
+      };
+
+      const params = new URLSearchParams({
+        classCode,
+        indexNo,
+        nameQuery,
+        callback: callbackName
+      });
+
+      const script = document.createElement('script');
+      script.src = API_URL + '?' + params.toString();
+
+      script.onerror = function() {
+        output.innerHTML = '<div class="error">Unable to contact the lookup system. Please try again later.</div>';
+        delete window[callbackName];
+      };
+
+      document.body.appendChild(script);
+    }
+
+    function renderResult(data) {
+      const output = document.getElementById('output');
+
+      if (!data.ok) {
+        output.innerHTML = '<div class="error">' + escapeHtml(data.message) + '</div>';
+        return;
+      }
+
+      const s = data.summary;
+      const student = data.student;
+      const teacher = data.teacher;
+
+      const mailSubject = encodeURIComponent(
+        'Query regarding quiz submission summary for ' +
+        student.name + ' (' + student.classCode + ')'
+      );
+
+      const mailBody = encodeURIComponent(
+        'Dear ' + teacher.name + ',\n\n' +
+        'I would like to enquire about the quiz submission summary for ' +
+        student.name + ' from ' + student.classCode + '.\n\n' +
+        'Thank you.'
+      );
+
+      const mailLink = teacher.email
+        ? 'mailto:' + teacher.email + '?subject=' + mailSubject + '&body=' + mailBody
+        : '#';
+
+      let html = '';
+
+      html += '<div class="student-card">';
+      html += '<h2>' + escapeHtml(student.name) + '</h2>';
+      html += '<p><strong>Class:</strong> ' + escapeHtml(student.classCode) + '</p>';
+      html += '<p><strong>Register number:</strong> ' + escapeHtml(student.indexNo) + '</p>';
+      html += '<p><strong>First lecture quiz date:</strong> ' + escapeHtml(data.firstQuizDate) + '</p>';
+      html += '<p><strong>Data requested / updated:</strong> ' + escapeHtml(data.lastUpdated) + '</p>';
+      html += '</div>';
+
+      html += '<div class="grid">';
+      html += statBox(s.totalQuizzes, 'Total quizzes');
+      html += statBox(s.submittedTotal, 'Submitted');
+      html += statBox(s.submittedP, 'Submitted - P');
+      html += statBox(s.submittedF, 'Submitted - F');
+      html += statBox(s.late, 'Late');
+      html += statBox(s.notSubmitted, 'Not Submitted');
+      html += statBox(s.completionPercent + '%', 'Completion');
+      html += statBox(s.passPercent + '%', 'Pass rate');
+      html += '</div>';
+
+      html += '<h3>Late submissions</h3>';
+      html += '<div class="details-box">' + escapeHtml(data.details.lateQuizDetails || 'None') + '</div>';
+
+      html += '<h3>Not submitted</h3>';
+      html += '<div class="details-box">' + escapeHtml(data.details.notSubmittedQuizDetails || 'None') + '</div>';
+
+      html += '<div class="email-box">';
+      html += '<p><strong>Further questions?</strong></p>';
+      html += '<p>You may email the Biology teacher-in-charge for your child’s class:</p>';
+      html += '<p>' + escapeHtml(teacher.name) + '</p>';
+
+      if (teacher.email) {
+        html += '<p><a href="' + mailLink + '">Email ' + escapeHtml(teacher.email) + '</a></p>';
+      }
+
+      html += '</div>';
+
+      output.innerHTML = html;
+    }
+
+    function statBox(num, label) {
+      return '<div class="stat"><div class="num">' + escapeHtml(String(num)) +
+             '</div><div class="label">' + escapeHtml(label) + '</div></div>';
+    }
+
+    function escapeHtml(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>
