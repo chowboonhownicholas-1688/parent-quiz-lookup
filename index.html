@@ -15,7 +15,7 @@
     }
 
     .container {
-      max-width: 980px;
+      max-width: 1000px;
       margin: auto;
       background: white;
       padding: 28px;
@@ -23,11 +23,22 @@
       box-shadow: 0 8px 24px rgba(0,0,0,0.08);
     }
 
-    h1 { margin-top: 0; font-size: 26px; }
-    h2 { margin-top: 28px; font-size: 20px; }
-    h3 { margin-top: 22px; font-size: 17px; }
+    h1 {
+      margin-top: 0;
+      font-size: 26px;
+    }
 
-    .note, .legend {
+    h2 {
+      margin-top: 28px;
+      font-size: 20px;
+    }
+
+    h3 {
+      margin-top: 22px;
+      font-size: 17px;
+    }
+
+    .note, .legend, .guidance {
       background: #eef4ff;
       padding: 12px 14px;
       border-radius: 10px;
@@ -63,6 +74,10 @@
       background: #1a73e8;
       color: white;
       cursor: pointer;
+    }
+
+    button:hover {
+      background: #155fc0;
     }
 
     .error {
@@ -120,7 +135,9 @@
       vertical-align: top;
     }
 
-    th { background: #f3f4f6; }
+    th {
+      background: #f3f4f6;
+    }
 
     .pill {
       display: inline-block;
@@ -128,12 +145,43 @@
       border-radius: 999px;
       font-size: 12px;
       font-weight: bold;
+      white-space: nowrap;
     }
 
-    .p { background: #dcfae6; color: #067647; }
-    .f { background: #eef2f6; color: #344054; }
-    .late { background: #ffe4e1; color: #b42318; }
-    .not { background: #fff4cc; color: #9a6700; }
+    .p {
+      background: #dcfae6;
+      color: #067647;
+    }
+
+    .f {
+      background: #eef2f6;
+      color: #344054;
+    }
+
+    .late {
+      background: #ffe4e1;
+      color: #b42318;
+    }
+
+    .not {
+      background: #fff4cc;
+      color: #9a6700;
+    }
+
+    .remark-ok {
+      color: #067647;
+      font-weight: bold;
+    }
+
+    .remark-note {
+      color: #9a6700;
+      font-weight: bold;
+    }
+
+    .remark-concern {
+      color: #b42318;
+      font-weight: bold;
+    }
 
     .details-box {
       margin-top: 12px;
@@ -155,13 +203,30 @@
     .email-box a {
       color: #0b6b37;
       font-weight: bold;
+      text-decoration: none;
+    }
+
+    .metric-help {
+      color: #555;
+      font-size: 12px;
     }
 
     @media (max-width: 700px) {
-      .grid { grid-template-columns: repeat(2, 1fr); }
-      body { padding: 12px; }
-      .container { padding: 20px; }
-      table { font-size: 12px; }
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      body {
+        padding: 12px;
+      }
+
+      .container {
+        padding: 20px;
+      }
+
+      table {
+        font-size: 12px;
+      }
     }
   </style>
 </head>
@@ -274,83 +339,100 @@
       html += '<h2>' + escapeHtml(student.name) + '</h2>';
       html += '<p><strong>Class:</strong> ' + escapeHtml(student.classCode) + '</p>';
       html += '<p><strong>Register number:</strong> ' + escapeHtml(student.indexNo) + '</p>';
-      html += '<p><strong>First lecture quiz date:</strong> ' + escapeHtml(data.firstQuizDate) + '</p>';
-      html += '<p><strong>Data updated:</strong> ' + escapeHtml(data.lastUpdated) + '</p>';
-      html += '</div>';
-
-      html += '<div class="legend">';
-      html += '<strong>Status explanation:</strong><br>';
-      html += 'Submitted - P: submitted on time and met the passing mark.<br>';
-      html += 'Submitted - F: submitted on time but did not meet the passing mark.<br>';
-      html += 'Late: submitted after the deadline.<br>';
-      html += 'Not Submitted: no submission recorded.';
+      html += '<p><strong>First concluded lecture quiz:</strong> ' + escapeHtml(data.firstQuizDate || '-') + '</p>';
+      html += '<p><strong>Data updated:</strong> ' + escapeHtml(data.lastUpdated || '-') + '</p>';
       html += '</div>';
 
       html += '<h2>Overall Summary</h2>';
       html += '<div class="grid">';
-      html += statBox(s.totalQuizzes, 'Total quizzes');
+      html += statBox(s.totalQuizzes, 'Total concluded quizzes');
       html += statBox(s.submittedTotal, 'Submitted');
       html += statBox(s.submittedP, 'Submitted - P');
       html += statBox(s.submittedF, 'Submitted - F');
       html += statBox(s.late, 'Late');
       html += statBox(s.notSubmitted, 'Not Submitted');
       html += statBox(s.completionPercent + '%', 'Completion');
-      html += statBox(s.passOutOfTotalPercent + '%', 'Passed out of total');
+      html += statBox(s.passOutOfTotalPercent + '%', 'Submitted - P out of total');
+      html += '</div>';
+
+      html += '<div class="legend">';
+      html += '<strong>Status explanation:</strong><br>';
+      html += '<strong>Submitted - P:</strong> submitted on time and met the passing mark.<br>';
+      html += '<strong>Submitted - F:</strong> submitted on time but did not meet the passing mark.<br>';
+      html += '<strong>Late:</strong> submitted after the deadline.<br>';
+      html += '<strong>Not Submitted:</strong> no submission recorded.';
       html += '</div>';
 
       html += '<h2>Comparison with Class and Cohort</h2>';
       html += '<table>';
       html += '<thead><tr><th>Metric</th><th>Your Child</th><th>Class Average</th><th>Cohort Average</th></tr></thead>';
       html += '<tbody>';
-      html += compareRow('Completion %', s.completionPercent, s.classCompletionPercent, s.cohortCompletionPercent);
-      html += compareRow('On-time submission %', s.onTimePercent, s.classOnTimePercent, s.cohortOnTimePercent);
-      html += compareRow('Submitted - P out of total %', s.passOutOfTotalPercent, s.classPassOutOfTotalPercent, s.cohortPassOutOfTotalPercent);
+      html += compareRow('Completion %', 'how consistently quizzes are attempted', s.completionPercent, s.classCompletionPercent, s.cohortCompletionPercent);
+      html += compareRow('On-time submission %', 'how well the student keeps pace with quiz deadlines', s.onTimePercent, s.classOnTimePercent, s.cohortOnTimePercent);
+      html += compareRow('Submitted - P out of total %', 'how often the student meets the passing mark across all concluded quizzes', s.passOutOfTotalPercent, s.classPassOutOfTotalPercent, s.cohortPassOutOfTotalPercent);
       html += '</tbody></table>';
 
       html += '<h2>Most Recent 10 Quizzes</h2>';
       html += '<table>';
-      html += '<thead><tr><th>Deadline</th><th>Quiz</th><th>Topic</th><th>Status</th></tr></thead>';
+      html += '<thead><tr><th>Date / Deadline</th><th>Quiz</th><th>Topic</th><th>Status</th></tr></thead>';
       html += '<tbody>';
-      data.recent10.forEach(item => {
-        html += '<tr>';
-        html += '<td>' + escapeHtml(item.deadline) + '</td>';
-        html += '<td>' + escapeHtml(item.quiz) + '<br><small>' + escapeHtml(item.aflId) + '</small></td>';
-        html += '<td>' + escapeHtml(item.topic) + '</td>';
-        html += '<td>' + statusPill(item.outcome) + '</td>';
-        html += '</tr>';
-      });
+
+      if (data.recent10 && data.recent10.length) {
+        data.recent10.forEach(item => {
+          html += '<tr>';
+          html += '<td>' + escapeHtml(item.deadline || '-') + '</td>';
+          html += '<td>' + escapeHtml(item.quiz || item.aflId || '-') + '<br><small>' + escapeHtml(item.aflId || '') + '</small></td>';
+          html += '<td>' + escapeHtml(item.topic || '-') + '</td>';
+          html += '<td>' + statusPill(item.outcome) + '</td>';
+          html += '</tr>';
+        });
+      } else {
+        html += '<tr><td colspan="4">No concluded quizzes available yet.</td></tr>';
+      }
+
       html += '</tbody></table>';
 
       html += '<h2>Topic Breakdown</h2>';
       html += '<table>';
-      html += '<thead><tr><th>Topic</th><th>Total</th><th>Submitted - P</th><th>Submitted - F</th><th>Late</th><th>Not Submitted</th></tr></thead>';
+      html += '<thead><tr><th>Topic</th><th>Total</th><th>Submitted - P</th><th>Cohort Submitted - P %</th><th>Remarks</th></tr></thead>';
       html += '<tbody>';
-      data.topicBreakdown.forEach(t => {
-        html += '<tr>';
-        html += '<td>' + escapeHtml(t.topic) + '</td>';
-        html += '<td>' + escapeHtml(t.total) + '</td>';
-        html += '<td>' + escapeHtml(t.submittedP) + ' (' + escapeHtml(t.submittedPPercent) + '%)</td>';
-        html += '<td>' + escapeHtml(t.submittedF) + ' (' + escapeHtml(t.submittedFPercent) + '%)</td>';
-        html += '<td>' + escapeHtml(t.late) + ' (' + escapeHtml(t.latePercent) + '%)</td>';
-        html += '<td>' + escapeHtml(t.notSubmitted) + ' (' + escapeHtml(t.notSubmittedPercent) + '%)</td>';
-        html += '</tr>';
-      });
+
+      if (data.topicBreakdown && data.topicBreakdown.length) {
+        data.topicBreakdown.forEach(t => {
+          html += '<tr>';
+          html += '<td>' + escapeHtml(t.topic || '-') + '</td>';
+          html += '<td>' + escapeHtml(t.total || '0') + '</td>';
+          html += '<td>' + escapeHtml(t.submittedP || '0') + ' (' + escapeHtml(t.submittedPPercent || '0') + '%)</td>';
+          html += '<td>' + escapeHtml(t.cohortSubmittedPPercent || '0') + '%</td>';
+          html += '<td class="' + remarkClass(t.remarkLevel) + '">' + escapeHtml(t.remarks || '-') + '</td>';
+          html += '</tr>';
+        });
+      } else {
+        html += '<tr><td colspan="5">No topic data available yet.</td></tr>';
+      }
+
       html += '</tbody></table>';
 
       html += '<h2>Action Required</h2>';
+
       html += '<h3>Late submissions</h3>';
       html += '<div class="details-box">' + escapeHtml(data.details.lateQuizDetails || 'None') + '</div>';
 
       html += '<h3>Not submitted</h3>';
       html += '<div class="details-box">' + escapeHtml(data.details.notSubmittedQuizDetails || 'None') + '</div>';
 
+      html += '<h2>Parent Guidance</h2>';
+      html += '<div class="guidance">';
+      html += escapeHtml(data.parentGuidance || 'Please check in with your child on recent lecture quiz completion and revision.');
+      html += '</div>';
+
       html += '<div class="email-box">';
       html += '<p><strong>Further questions?</strong></p>';
       html += '<p>You may email the Biology teacher-in-charge for your child’s class:</p>';
-      html += '<p>' + escapeHtml(teacher.name) + '</p>';
+      html += '<p>' + escapeHtml(teacher.name || 'Biology teacher') + '</p>';
 
       if (teacher.email) {
-        html += '<p><a href="' + mailLink + '">Email ' + escapeHtml(teacher.email) + '</a></p>';
+        html += '<p><a href="' + mailLink + '">' + escapeHtml(teacher.email) + '</a></p>';
       }
 
       html += '</div>';
@@ -358,11 +440,13 @@
       output.innerHTML = html;
     }
 
-    function compareRow(label, child, classAvg, cohortAvg) {
-      return '<tr><td>' + escapeHtml(label) + '</td><td>' +
-        escapeHtml(child) + '%</td><td>' +
-        escapeHtml(classAvg) + '%</td><td>' +
-        escapeHtml(cohortAvg) + '%</td></tr>';
+    function compareRow(label, helpText, child, classAvg, cohortAvg) {
+      return '<tr><td>' +
+        escapeHtml(label) +
+        '<br><span class="metric-help">(' + escapeHtml(helpText) + ')</span></td><td>' +
+        escapeHtml(child || '0') + '%</td><td>' +
+        escapeHtml(classAvg || '0') + '%</td><td>' +
+        escapeHtml(cohortAvg || '0') + '%</td></tr>';
     }
 
     function statBox(num, label) {
@@ -372,12 +456,19 @@
 
     function statusPill(status) {
       let cls = '';
+
       if (status === 'Submitted - P') cls = 'p';
       else if (status === 'Submitted - F') cls = 'f';
       else if (status === 'Late') cls = 'late';
       else if (status === 'Not Submitted') cls = 'not';
 
-      return '<span class="pill ' + cls + '">' + escapeHtml(status) + '</span>';
+      return '<span class="pill ' + cls + '">' + escapeHtml(status || '-') + '</span>';
+    }
+
+    function remarkClass(level) {
+      if (level === 'concern') return 'remark-concern';
+      if (level === 'note') return 'remark-note';
+      return 'remark-ok';
     }
 
     function escapeHtml(value) {
