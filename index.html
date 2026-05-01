@@ -263,7 +263,7 @@
   </div>
 
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycby1tmWY9m-U9Sr1A0HymYYi9CY4Y6E2m-ZTl9QsKIuxcPnGo5AmzRFWoYhvoj9c7YT1zg/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxACW33Bem2M6jWPIHh6TiMUp5DjbgRnlTnPd6nikLMKEKEjSQ9s3dzPB7lW7UVwaPtsA/exec';
 
     function lookup() {
       const output = document.getElementById('output');
@@ -374,20 +374,22 @@
 
       html += '<h2>Most Recent 10 Quizzes</h2>';
       html += '<table>';
-      html += '<thead><tr><th>Date / Deadline</th><th>Quiz</th><th>Topic</th><th>Status</th></tr></thead>';
+      html += '<thead><tr><th>Date / Deadline</th><th>Submitted At</th><th>Quiz</th><th>Topic</th><th>Status</th><th>Late Duration</th></tr></thead>';
       html += '<tbody>';
 
       if (data.recent10 && data.recent10.length) {
         data.recent10.forEach(item => {
           html += '<tr>';
           html += '<td>' + escapeHtml(item.deadline || '-') + '</td>';
+          html += '<td>' + escapeHtml(item.submittedAt || '-') + '</td>';
           html += '<td>' + escapeHtml(item.quiz || item.aflId || '-') + '<br><small>' + escapeHtml(item.aflId || '') + '</small></td>';
           html += '<td>' + escapeHtml(item.topic || '-') + '</td>';
           html += '<td>' + statusPill(item.outcome) + '</td>';
+          html += '<td>' + escapeHtml(item.lateDuration || '-') + '</td>';
           html += '</tr>';
         });
       } else {
-        html += '<tr><td colspan="4">No concluded quizzes available yet.</td></tr>';
+        html += '<tr><td colspan="6">No concluded quizzes available yet.</td></tr>';
       }
 
       html += '</tbody></table>';
